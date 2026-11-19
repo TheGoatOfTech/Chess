@@ -46,10 +46,11 @@ body{
   border:1px solid var(--gold);
   transition:transform .3s,filter .3s,background .3s,color .3s;
   cursor:pointer;
-  background:rgba(24,16,12,.55);
-  color:var(--cream)
+  background:rgba(24,16,12,.68);
+  color:var(--cream);
+  backdrop-filter:blur(4px)
 }
-.btn:hover{transform:translateY(-2px);background:rgba(197,168,128,.16)}
+.btn:hover{transform:translateY(-2px);background:rgba(197,168,128,.2)}
 .btn:focus-visible,a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
 .b-w{background:var(--wine);color:var(--cream);border-color:#9E3D30}
 .b-w:hover{background:#7E2B20}
@@ -60,7 +61,7 @@ body{
 header{
   position:fixed;top:0;left:0;right:0;z-index:40;
   padding-top:env(safe-area-inset-top,0px);
-  background:rgba(20,13,10,.9);
+  background:rgba(20,13,10,.88);
   backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(197,168,128,.28)
 }
@@ -169,7 +170,6 @@ header{
   position:relative;
   overflow:hidden;
 }
-/* Bandô / Sanefa superior dourada e veludo */
 .curtain-valance{
   position:absolute;
   top:0;left:0;right:0;
@@ -184,7 +184,6 @@ header{
   position:absolute;
   top:0;bottom:0;
   width:50%;
-  /* Pregas suaves de veludo vermelho vinho/terracota */
   background:
     repeating-linear-gradient(
       90deg,
@@ -211,7 +210,6 @@ header{
   border-left:2px solid rgba(197,168,128,.5);
   box-shadow:-8px 0 30px rgba(0,0,0,.55), inset 12px 0 24px rgba(0,0,0,.45);
 }
-/* Cortinas abertas: deslizam devagar para os cantos deixando uma borda decorativa recolhida */
 .curtains-open .curtain-left{
   transform:translateX(-96%) scaleX(.85);
   pointer-events:none;
@@ -220,7 +218,6 @@ header{
   transform:translateX(96%) scaleX(.85);
   pointer-events:none;
 }
-/* Interior revelado com transição calma e luminosa */
 .hall-interior{
   transition:opacity 1.5s ease, filter 1.6s ease, transform 1.8s cubic-bezier(.22, 1, .36, 1);
 }
@@ -254,6 +251,9 @@ const GALLERY_CONFIG = {
   whatsapp: "5519999999999", // TROQUE: DDI+DDD+número da curadoria
   paymentLink: "https://pagamento.exemplo.com/artheiros", // TROQUE: link Pix/Cartão real
   tourSeconds: 7,
+  // Vídeo de entrada da galeria na pasta /assets do GitHub
+  heroVideo: "./assets/entrada-galeria.mp4",
+  // Capa de carregamento e quadro lateral
   heroImage: "https://images.unsplash.com/photo-1577720643272-265f09367456?auto=format&fit=crop&w=1000&q=85",
   heroCaption: "Salão Principal · Curadoria Inaugural Artheiros"
 };
@@ -401,7 +401,6 @@ function Wall({arts,onOpen,hallOpen,onOpenHall,onCloseHall}) {
     <div className="curtain-panel curtain-left"></div>
     <div className="curtain-panel curtain-right"></div>
 
-    <!-- CONVITE DISCRETO SOBRE AS CORTINAS FECHADAS -->
     <div className=${`absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 transition-all duration-1000 ${hallOpen?'opacity-0 pointer-events-none scale-95':'opacity-100 cursor-pointer'}`} onClick=${onOpenHall}>
       <div className="p-8 md:p-11 max-w-md" style=${{background:'rgba(20,10,8,.76)',border:'1px solid rgba(197,168,128,.45)',boxShadow:'0 24px 60px rgba(0,0,0,.65)',backdropFilter:'blur(8px)'}}>
         <div className="flex justify-center mb-4"><${Logo} s=${48}/></div>
@@ -412,7 +411,6 @@ function Wall({arts,onOpen,hallOpen,onOpenHall,onCloseHall}) {
       </div>
     </div>
 
-    <!-- INTERIOR DO SALÃO REVELADO SUAVEMENTE -->
     <div className=${`hall-interior px-6 md:px-16 py-24 relative ${hallOpen?'hall-revealed':'hall-closed'}`}>
       <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
         <div className="max-w-3xl">
@@ -536,18 +534,35 @@ function App() {
       <div className="flex items-center gap-3"><button className="btn hidden md:block" onClick=${()=>setTour(true)}>Iniciar visita guiada</button>
         <button className="relative p-2 hover:text-[#C5A880]" aria-label=${'Sacola, '+cart.length+' obras'} onClick=${()=>setBag(true)}><${Ic} d=${P.bag} s=${24}/><span className="absolute -top-0.5 -right-0.5 text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-semibold" style=${{background:'#6B241B',color:'#F5EFE6',border:'1px solid #C5A880'}}>${cart.length}</span></button></div></div></header>
 
+    <!-- HERO COM VÍDEO DE FUNDO ENTRANDO NA GALERIA (./assets/entrada-galeria.mp4) -->
     <section id="hero" className="relative min-h-screen grid lg:grid-cols-12 gap-10 items-center px-6 md:px-16 pt-28 pb-16 overflow-hidden">
-      <div className="relative lg:col-span-7">
+      <video
+        autoPlay
+        loop
+        muted
+        playsInline
+        poster=${GALLERY_CONFIG.heroImage}
+        className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
+        style=${{opacity:.52,filter:'contrast(1.06) saturate(.92)'}}
+      >
+        <source src=${GALLERY_CONFIG.heroVideo} type="video/mp4"/>
+      </video>
+      <div
+        className="absolute inset-0 z-0 pointer-events-none"
+        style=${{background:'linear-gradient(90deg, rgba(20,13,9,.9) 0%, rgba(20,13,9,.68) 55%, rgba(20,13,9,.48) 100%), radial-gradient(circle at 50% 100%, #18100C 0%, transparent 45%)'}}
+      ></div>
+
+      <div className="relative z-10 lg:col-span-7">
         <p className="text-xs uppercase tracking-[.25em] mb-4" style=${{color:'#C5A880'}}>Exposição Inaugural · ${GALLERY_CONFIG.city}</p>
         <h1 className="serif text-5xl md:text-7xl xl:text-8xl leading-[1.02]">Uma galeria que aproxima <i style=${{color:'#C5A880'}}>artistas</i> e pessoas por meio da arte.</h1>
-        <p className="mt-8 max-w-xl leading-relaxed opacity-85">Em Campinas, a jornalista e curadora ${GALLERY_CONFIG.curator} seleciona obras autorais de artistas da região — cada peça apresentada em sala com sua história, processo criativo e certificado de autenticidade.</p>
+        <p className="mt-8 max-w-xl leading-relaxed opacity-90">Em Campinas, a jornalista e curadora ${GALLERY_CONFIG.curator} seleciona obras autorais de artistas da região — cada peça apresentada em sala com sua história, processo criativo e certificado de autenticidade.</p>
         <div className="flex flex-wrap gap-4 mt-10">
           <button className="btn b-w" onClick=${()=>setTour(true)}>Iniciar exposição guiada</button>
           <a href="#parede" onClick=${enterExhibition} className="btn b-o">Explorar acervo na parede</a>
         </div>
       </div>
 
-      <div className="lg:col-span-5 flex flex-col items-center justify-center spotlight">
+      <div className="relative z-10 lg:col-span-5 flex flex-col items-center justify-center spotlight">
         <div className="frame f-wood w-full max-w-[390px] aspect-[4/5]" style=${{cursor:'pointer'}} onClick=${()=>setTour(true)}
           onMouseMove=${e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;e.currentTarget.style.transform=`perspective(1000px) rotateY(${x*12}deg) rotateX(${-y*12}deg) translateZ(14px)`}}
           onMouseLeave=${e=>e.currentTarget.style.transform=''}>
