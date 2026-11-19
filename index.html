@@ -164,6 +164,86 @@ header{
   100%{transform:translateX(-50%)}
 }
 
+/* PORTA DUPLA DA EXPOSIÇÃO (ANIMAÇÃO 3D DE ENTRADA) */
+.gallery-portal{
+  position:relative;
+  perspective:1800px;
+  overflow:hidden;
+}
+.door-leaf{
+  position:absolute;
+  top:0;bottom:0;
+  width:50%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0px, rgba(255,255,255,.02) 1px, transparent 1px, transparent 32px),
+    linear-gradient(180deg, #2B1B13 0%, #190F0A 50%, #24160F 100%);
+  border:2px solid #4A3324;
+  box-shadow:inset 0 0 60px rgba(0,0,0,.85);
+  transition:transform 1.35s cubic-bezier(.25,.9,.25,1), opacity .6s ease .95s;
+  z-index:20;
+  display:flex;
+  align-items:center;
+}
+.door-leaf::after{
+  content:"";
+  position:absolute;
+  inset:24px;
+  border:1px solid rgba(197,168,128,.35);
+  box-shadow:inset 0 0 24px rgba(0,0,0,.6);
+  pointer-events:none;
+}
+.door-left{
+  left:0;
+  transform-origin:left center;
+  justify-content:flex-end;
+  padding-right:22px;
+  border-right:1px solid rgba(197,168,128,.45);
+}
+.door-right{
+  right:0;
+  transform-origin:right center;
+  justify-content:flex-start;
+  padding-left:22px;
+  border-left:1px solid rgba(197,168,128,.45);
+}
+.door-handle{
+  width:8px;
+  height:92px;
+  border-radius:4px;
+  background:linear-gradient(180deg, #E5CEA8 0%, #9E7B4F 50%, #C5A880 100%);
+  box-shadow:0 6px 14px rgba(0,0,0,.8);
+}
+/* Estado Aberto: portas giram para dentro e somem suavemente */
+.doors-open .door-left{
+  transform:rotateY(108deg);
+  opacity:0;
+  pointer-events:none;
+}
+.doors-open .door-right{
+  transform:rotateY(-108deg);
+  opacity:0;
+  pointer-events:none;
+}
+/* Efeito de luz vazando e câmera entrando no salão */
+.hall-interior{
+  transition:transform 1.45s cubic-bezier(.2,.85,.25,1), filter 1.2s ease, opacity 1s ease;
+  transform-origin:center 28%;
+}
+.hall-locked{
+  transform:scale(.88);
+  filter:brightness(.22) blur(3px);
+  pointer-events:none;
+  user-select:none;
+}
+.hall-entering{
+  animation:enterHall 1.5s cubic-bezier(.2,.85,.25,1) forwards;
+}
+@keyframes enterHall{
+  0%{transform:scale(.86) translateZ(-120px);filter:brightness(.35) blur(2px)}
+  55%{transform:scale(1.03) translateZ(20px);filter:brightness(1.08) blur(0px)}
+  100%{transform:scale(1) translateZ(0);filter:brightness(1) blur(0px)}
+}
+
 .bump{animation:bump .5s}@keyframes bump{40%{transform:scale(1.5)}}
 .fade{animation:fade 1s}@keyframes fade{from{opacity:0;transform:translateY(10px)}}
 .overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(10,7,5,.88);backdrop-filter:blur(6px)}
@@ -181,14 +261,12 @@ const GALLERY_CONFIG = {
   whatsapp: "5519999999999", // TROQUE: DDI+DDD+número da curadoria
   paymentLink: "https://pagamento.exemplo.com/artheiros", // TROQUE: link Pix/Cartão real
   tourSeconds: 7,
-  // Imagem principal do quadro emoldurado na entrada (Hero) — pode trocar por foto de galeria ou obra destaque
   heroImage: "https://images.unsplash.com/photo-1577720643272-265f09367456?auto=format&fit=crop&w=1000&q=85",
   heroCaption: "Salão Principal · Curadoria Inaugural Artheiros"
 };
 
 const fallbackArt = (title) => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="g" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#8C5A3C"/><stop offset="100%" stop-color="#2B1B12"/></radialGradient></defs><rect width="400" height="500" fill="url(#g)"/><circle cx="200" cy="220" r="95" fill="#6B241B" opacity=".8"/><text x="200" y="440" fill="#F5EFE6" font-family="Georgia,serif" font-size="18" text-anchor="middle">${title}</text></svg>`);
 
-// Para colocar as fotos reais da cliente, troque `imageUrl` por "./assets/foto1.jpg", etc.
 const ARTWORKS = [
  { id:1, title:"Chão de Barro", artist:"Helena Duarte", artistBio:"Pintora campineira, formada pela Unicamp, trabalha com pigmentos de terra colhidos no interior paulista.", artistProcess:"Helena mistura óxidos e cola natural, e pinta no chão do ateliê, deixando a gravidade conduzir as camadas.", city:"Campinas, SP", category:"Artes Visuais", technique:"Pigmentos naturais e óleo sobre tela", dimensions:"90 × 110 cm", year:2024, price:4800, likes:128, frameStyle:"wood", featuredInTour:true,
    curatedDescription:"Há telas que se olham e telas que se pisam com os olhos. Esta guarda o cheiro de terra depois da chuva.",
@@ -320,36 +398,56 @@ function Room({a,onClose,liked,onLike,inCart,onAdd}) {
   </div>`;
 }
 
-function Wall({arts,onOpen}) {
+// SALÃO PRINCIPAL COM PORTAS DUPLAS QUE SE ABREM AO ENTRAR
+function Wall({arts,onOpen,hallOpen,onOpenHall,onCloseHall}) {
   const [cat,setCat]=useState("Todas"),[leap,setLeap]=useState(null);
   const list=arts.filter(a=>cat==="Todas"||a.category===cat), H=[370,310,420,340,390,320];
   const click=a=>{setLeap(a.id);setTimeout(()=>{setLeap(null);onOpen(a.id)},650)};
-  return html`<section id="parede" className="px-6 md:px-16 py-24 relative">
-    <div className="max-w-3xl mb-10">
-      <p className="text-xs uppercase tracking-[.22em] mb-2" style=${{color:'#C5A880'}}>Salão Principal · Parede em Madeira Nobre</p>
-      <h2 className="serif text-4xl md:text-6xl">Acervo <i>em exposição</i></h2>
-      <p className="text-sm opacity-75 mt-3">Clique sobre qualquer moldura iluminada para destacá-la da parede e explorar a história da obra.</p>
-    </div>
-    <div className="flex flex-wrap gap-2 mb-16">${CATS.map(c=>html`<button key=${c} className=${'btn '+(c===cat?'b-w':'')} onClick=${()=>setCat(c)}>${c}</button>`)}</div>
-    <div className="wall grid sm:grid-cols-2 lg:grid-cols-3 gap-x-14 gap-y-20 items-end">
-      ${list.map((a,k)=>html`<div key=${a.id} className="slot flex flex-col items-center" style=${{marginTop:k%2?44:0}}>
-        <div className="spotlight flex justify-center w-full">
-          <${Frame} a=${a} cls=${leap===a.id?'leap':''} tabIndex="0" role="button" aria-label=${'Abrir '+a.title} style=${{width:'min(100%,285px)',height:H[a.id-1]*0.82}}
-            onKeyDown=${e=>e.key==='Enter'&&click(a)} onClick=${()=>click(a)}
-            onMouseMove=${e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;e.currentTarget.style.transform=`rotateY(${x*18}deg) rotateX(${-y*18}deg) translateZ(20px)`}}
-            onMouseLeave=${e=>e.currentTarget.style.transform=''}/>
+  return html`<section id="parede" className=${`gallery-portal min-h-[820px] border-y border-[#C5A880]/25 ${hallOpen?'doors-open':''}`}>
+    <!-- PORTAS FECHADAS DA GALERIA (ABREM AO CLICAR) -->
+    <div className="door-leaf door-left"><div className="door-handle"></div></div>
+    <div className="door-leaf door-right"><div className="door-handle"></div></div>
+
+    ${!hallOpen&&html`<div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 cursor-pointer" onClick=${onOpenHall}>
+      <div className="p-8 md:p-12 max-w-lg" style=${{background:'rgba(18,12,9,.82)',border:'1px solid rgba(197,168,128,.5)',boxShadow:'0 30px 70px rgba(0,0,0,.85)',backdropFilter:'blur(6px)'}}>
+        <div className="flex justify-center mb-4"><${Logo} s=${54}/></div>
+        <p className="text-xs uppercase tracking-[.26em] mb-2" style=${{color:'#C5A880'}}>Salão Principal · Acervo na Parede</p>
+        <h2 className="serif text-4xl md:text-5xl mb-3">Entrar na <i>Exposição</i></h2>
+        <p className="text-sm opacity-80 leading-relaxed mb-7">As portas da sala principal estão fechadas. Clique abaixo para abrir o salão e caminhar pelas obras em exposição.</p>
+        <button className="btn b-w" onClick=${e=>{e.stopPropagation();onOpenHall()}}>Abrir portas da exposição →</button>
+      </div>
+    </div>`}
+
+    <!-- INTERIOR DA EXPOSIÇÃO (REVELADO COM ZOOM DE ENTRADA) -->
+    <div className=${`hall-interior px-6 md:px-16 py-24 relative ${hallOpen?'hall-entering':'hall-locked'}`}>
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
+        <div className="max-w-3xl">
+          <p className="text-xs uppercase tracking-[.22em] mb-2" style=${{color:'#C5A880'}}>Salão Principal · Parede em Madeira Nobre</p>
+          <h2 className="serif text-4xl md:text-6xl">Acervo <i>em exposição</i></h2>
+          <p className="text-sm opacity-75 mt-3">Clique sobre qualquer moldura iluminada para destacá-la da parede e explorar a história da obra.</p>
         </div>
-        <div className="plaque mt-7 px-5 py-3.5 text-center text-xs" style=${{minWidth:230}}>
-          <div className="serif italic text-xl" style=${{color:'#F5EFE6'}}>${a.title}</div>
-          <div className="mt-0.5" style=${{color:'#C5A880'}}>${a.artist}</div>
-          <div className="opacity-65 mt-1">${a.dimensions} · ${brl(a.price)}</div>
-        </div>
-      </div>`)}
+        <button className="text-xs uppercase tracking-widest opacity-65 hover:opacity-100 underline underline-offset-4" style=${{color:'#C5A880'}} onClick=${onCloseHall}>Fechar portas do salão</button>
+      </div>
+      <div className="flex flex-wrap gap-2 mb-16">${CATS.map(c=>html`<button key=${c} className=${'btn '+(c===cat?'b-w':'')} onClick=${()=>setCat(c)}>${c}</button>`)}</div>
+      <div className="wall grid sm:grid-cols-2 lg:grid-cols-3 gap-x-14 gap-y-20 items-end">
+        ${list.map((a,k)=>html`<div key=${a.id} className="slot flex flex-col items-center" style=${{marginTop:k%2?44:0}}>
+          <div className="spotlight flex justify-center w-full">
+            <${Frame} a=${a} cls=${leap===a.id?'leap':''} tabIndex="0" role="button" aria-label=${'Abrir '+a.title} style=${{width:'min(100%,285px)',height:H[a.id-1]*0.82}}
+              onKeyDown=${e=>e.key==='Enter'&&click(a)} onClick=${()=>click(a)}
+              onMouseMove=${e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;e.currentTarget.style.transform=`rotateY(${x*18}deg) rotateX(${-y*18}deg) translateZ(20px)`}}
+              onMouseLeave=${e=>e.currentTarget.style.transform=''}/>
+          </div>
+          <div className="plaque mt-7 px-5 py-3.5 text-center text-xs" style=${{minWidth:230}}>
+            <div className="serif italic text-xl" style=${{color:'#F5EFE6'}}>${a.title}</div>
+            <div className="mt-0.5" style=${{color:'#C5A880'}}>${a.artist}</div>
+            <div className="opacity-65 mt-1">${a.dimensions} · ${brl(a.price)}</div>
+          </div>
+        </div>`)}
+      </div>
     </div>
   </section>`;
 }
 
-// Carrossel contínuo em loop infinito (pausa ao passar o mouse)
 function Carousel({arts,likedSet,onLike,onOpen}) {
   const sorted=[...arts].sort((a,b)=>b.likes-a.likes);
   const loopItems=[...sorted,...sorted];
@@ -422,15 +520,26 @@ function Submit({onClose}) {
 function App() {
   const [arts,setArts]=useState(ARTWORKS),[liked,setLiked]=useState(new Set()),[cart,setCart]=useState([]);
   const [tour,setTour]=useState(false),[open,setOpen]=useState(null),[bag,setBag]=useState(false),[sub,setSub]=useState(false);
+  const [hallOpen,setHallOpen]=useState(false);
+
   const like=id=>{const had=liked.has(id);setLiked(s=>{const n=new Set(s);had?n.delete(id):n.add(id);return n});setArts(l=>l.map(a=>a.id===id?{...a,likes:a.likes+(had?-1:1)}:a))};
   const toggle=id=>setCart(c=>c.includes(id)?c.filter(x=>x!==id):[...c,id]);
   const add=id=>setCart(c=>c.includes(id)?c:[...c,id]);
   const cur=arts.find(a=>a.id===open);
+
+  // Rola até o salão e dispara a animação das portas abrindo + entrada na exposição
+  const enterExhibition = (e) => {
+    if (e) e.preventDefault();
+    const el = document.getElementById('parede');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => setHallOpen(true), 220);
+  };
+
   const links=[["Exposição","#hero"],["Mais Apreciadas","#apreciadas"],["Acervo na Parede","#parede"],["Curadoria","#curadoria"]];
   return html`<div>
     <header><div className="flex items-center justify-between px-4 md:px-10 py-3.5">
       <a href="#hero" className="flex items-center gap-3"><${Logo}/><span className="hidden sm:block leading-tight"><span className="serif text-xl tracking-[.22em] block" style=${{color:'#F5EFE6'}}>ARTHEIROS</span><span className="text-[9px] tracking-[.2em]" style=${{color:'#C5A880'}}>GALERIA DE ARTE AUTORAL</span></span></a>
-      <nav className="hidden lg:flex gap-8 text-xs uppercase tracking-[.14em]">${links.map(([t,h])=>html`<a key=${h} href=${h} className="hover:text-[#C5A880] transition-colors">${t}</a>`)}</nav>
+      <nav className="hidden lg:flex gap-8 text-xs uppercase tracking-[.14em]">${links.map(([t,h])=>html`<a key=${h} href=${h} onClick=${h==='#parede'?enterExhibition:undefined} className="hover:text-[#C5A880] transition-colors">${t}</a>`)}</nav>
       <div className="flex items-center gap-3"><button className="btn hidden md:block" onClick=${()=>setTour(true)}>Iniciar visita guiada</button>
         <button className="relative p-2 hover:text-[#C5A880]" aria-label=${'Sacola, '+cart.length+' obras'} onClick=${()=>setBag(true)}><${Ic} d=${P.bag} s=${24}/><span className="absolute -top-0.5 -right-0.5 text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-semibold" style=${{background:'#6B241B',color:'#F5EFE6',border:'1px solid #C5A880'}}>${cart.length}</span></button></div></div></header>
 
@@ -441,11 +550,10 @@ function App() {
         <p className="mt-8 max-w-xl leading-relaxed opacity-85">Em Campinas, a jornalista e curadora ${GALLERY_CONFIG.curator} seleciona obras autorais de artistas da região — cada peça apresentada em sala com sua história, processo criativo e certificado de autenticidade.</p>
         <div className="flex flex-wrap gap-4 mt-10">
           <button className="btn b-w" onClick=${()=>setTour(true)}>Iniciar exposição guiada</button>
-          <a href="#parede" className="btn b-o">Explorar acervo na parede</a>
+          <a href="#parede" onClick=${enterExhibition} className="btn b-o">Explorar acervo na parede</a>
         </div>
       </div>
 
-      <!-- Quadro Monumental de Exposição ao lado do Hero -->
       <div className="lg:col-span-5 flex flex-col items-center justify-center spotlight">
         <div className="frame f-wood w-full max-w-[390px] aspect-[4/5]" style=${{cursor:'pointer'}} onClick=${()=>setTour(true)}
           onMouseMove=${e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;e.currentTarget.style.transform=`perspective(1000px) rotateY(${x*12}deg) rotateX(${-y*12}deg) translateZ(14px)`}}
@@ -464,7 +572,7 @@ function App() {
     </section>
 
     <${Carousel} arts=${arts} likedSet=${liked} onLike=${like} onOpen=${setOpen}/>
-    <${Wall} arts=${arts} onOpen=${setOpen}/>
+    <${Wall} arts=${arts} onOpen=${setOpen} hallOpen=${hallOpen} onOpenHall=${()=>setHallOpen(true)} onCloseHall=${()=>setHallOpen(false)}/>
 
     <section id="curadoria" className="grid md:grid-cols-2" style=${{borderTop:'1px solid rgba(197,168,128,.25)'}}>
       <div className="p-8 md:p-16" style=${{background:'linear-gradient(135deg,#281B14 0%,#1B120D 100%)',borderRight:'1px solid rgba(197,168,128,.2)'}}>
