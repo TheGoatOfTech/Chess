@@ -28,7 +28,6 @@ body{
   background-color:var(--wood-dark);
   color:var(--cream);
   font-family:'Plus Jakarta Sans',system-ui,sans-serif;
-  /* Textura de painel de madeira nobre escura + iluminação quente de galeria */
   background-image:
     radial-gradient(ellipse 80% 50% at 50% 0%, rgba(197,168,128,.14) 0%, transparent 70%),
     repeating-linear-gradient(90deg, rgba(255,255,255,.018) 0px, rgba(255,255,255,.018) 1px, transparent 1px, transparent 48px),
@@ -67,24 +66,22 @@ header{
 }
 
 /* Holofote acima das obras na parede */
-.spotlight{
-  position:relative;
-}
+.spotlight{position:relative}
 .spotlight::before{
   content:"";
   position:absolute;
-  top:-38px;
+  top:-42px;
   left:50%;
   transform:translateX(-50%);
-  width:240px;
-  height:280px;
-  background:radial-gradient(ellipse at top, rgba(255,232,190,.22) 0%, rgba(197,168,128,.06) 45%, transparent 72%);
+  width:280px;
+  height:320px;
+  background:radial-gradient(ellipse at top, rgba(255,232,190,.24) 0%, rgba(197,168,128,.07) 48%, transparent 74%);
   pointer-events:none;
   z-index:0;
   transition:opacity .4s;
 }
 .slot:hover .spotlight::before{
-  background:radial-gradient(ellipse at top, rgba(255,236,200,.36) 0%, rgba(197,168,128,.12) 50%, transparent 75%);
+  background:radial-gradient(ellipse at top, rgba(255,236,200,.38) 0%, rgba(197,168,128,.14) 52%, transparent 76%);
 }
 
 /* Molduras Multi-camadas Realistas */
@@ -108,7 +105,6 @@ header{
   object-fit:cover;
   box-shadow:inset 0 0 8px rgba(0,0,0,.5);
 }
-/* Moldura Caixa Preta com Friso Dourado */
 .f-black{
   padding:14px;
   background:linear-gradient(145deg,#23201D,#0E0C0A);
@@ -116,7 +112,6 @@ header{
   outline:1px solid rgba(197,168,128,.45);
   outline-offset:-10px;
 }
-/* Moldura Madeira Nobre Entalhada */
 .f-wood{
   padding:16px;
   background:linear-gradient(135deg,#7C5333 0%,#4B2E1B 48%,#694327 100%);
@@ -124,7 +119,6 @@ header{
   outline:1px solid rgba(214,191,163,.4);
   outline-offset:-11px;
 }
-/* Moldura Passe-partout de Museu */
 .f-gallery-white{
   padding:24px;
   background:#EFE8DC;
@@ -142,7 +136,7 @@ header{
 
 /* Plaquinha de Museu em Bronze/Latão Escuro */
 .plaque{
-  opacity:.82;
+  opacity:.86;
   transition:opacity .4s, transform .4s;
   background:linear-gradient(180deg,#241A14,#18110D);
   border:1px solid rgba(197,168,128,.45);
@@ -150,9 +144,28 @@ header{
 }
 .slot:hover .plaque{opacity:1;transform:translateY(-2px)}
 
+/* Carrossel Contínuo em Loop (Marquee Infinito) */
+.marquee-wrap{
+  overflow:hidden;
+  mask-image:linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg, transparent 0%, #000 5%, #000 95%, transparent 100%);
+}
+.marquee-track{
+  display:flex;
+  gap:1.75rem;
+  width:max-content;
+  animation:marqueeLoop 38s linear infinite;
+}
+.marquee-wrap:hover .marquee-track{
+  animation-play-state:paused;
+}
+@keyframes marqueeLoop{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-50%)}
+}
+
 .bump{animation:bump .5s}@keyframes bump{40%{transform:scale(1.5)}}
 .fade{animation:fade 1s}@keyframes fade{from{opacity:0;transform:translateY(10px)}}
-.scroller{display:flex;gap:1.75rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;cursor:grab}.scroller::-webkit-scrollbar{display:none}
 .overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(10,7,5,.88);backdrop-filter:blur(6px)}
 input,textarea{width:100%;border:1px solid rgba(197,168,128,.45);background:#221712;color:var(--cream);padding:.75rem;font:inherit;font-size:.9rem}
 input::placeholder,textarea::placeholder{color:rgba(245,239,230,.45)}
@@ -167,10 +180,12 @@ const GALLERY_CONFIG = {
   city: "Campinas, SP",
   whatsapp: "5519999999999", // TROQUE: DDI+DDD+número da curadoria
   paymentLink: "https://pagamento.exemplo.com/artheiros", // TROQUE: link Pix/Cartão real
-  tourSeconds: 7
+  tourSeconds: 7,
+  // Imagem principal do quadro emoldurado na entrada (Hero) — pode trocar por foto de galeria ou obra destaque
+  heroImage: "https://images.unsplash.com/photo-1577720643272-265f09367456?auto=format&fit=crop&w=1000&q=85",
+  heroCaption: "Salão Principal · Curadoria Inaugural Artheiros"
 };
 
-// Fallback automático caso alguma imagem externa falhe offline
 const fallbackArt = (title) => 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><radialGradient id="g" cx="50%" cy="40%" r="60%"><stop offset="0%" stop-color="#8C5A3C"/><stop offset="100%" stop-color="#2B1B12"/></radialGradient></defs><rect width="400" height="500" fill="url(#g)"/><circle cx="200" cy="220" r="95" fill="#6B241B" opacity=".8"/><text x="200" y="440" fill="#F5EFE6" font-family="Georgia,serif" font-size="18" text-anchor="middle">${title}</text></svg>`);
 
 // Para colocar as fotos reais da cliente, troque `imageUrl` por "./assets/foto1.jpg", etc.
@@ -334,35 +349,38 @@ function Wall({arts,onOpen}) {
   </section>`;
 }
 
+// Carrossel contínuo em loop infinito (pausa ao passar o mouse)
 function Carousel({arts,likedSet,onLike,onOpen}) {
-  const ref=useRef(),d=useRef(null),sorted=[...arts].sort((a,b)=>b.likes-a.likes);
-  const sc=v=>ref.current.scrollBy({left:v,behavior:'smooth'});
-  return html`<section id="apreciadas" className="py-24 px-6 md:px-16 relative" style=${{background:'linear-gradient(180deg, #1E2317 0%, #161A11 100%)',borderTop:'1px solid rgba(197,168,128,.25)',borderBottom:'1px solid rgba(197,168,128,.25)'}}>
-    <div className="flex flex-wrap items-end justify-between gap-4 mb-12">
+  const sorted=[...arts].sort((a,b)=>b.likes-a.likes);
+  const loopItems=[...sorted,...sorted];
+  return html`<section id="apreciadas" className="py-24 relative" style=${{background:'linear-gradient(180deg, #1E2317 0%, #161A11 100%)',borderTop:'1px solid rgba(197,168,128,.25)',borderBottom:'1px solid rgba(197,168,128,.25)'}}>
+    <div className="px-6 md:px-16 mb-12 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <p className="text-xs uppercase tracking-[.22em] mb-2" style=${{color:'#C5A880'}}>Vitrine de Destaques</p>
+        <p className="text-xs uppercase tracking-[.22em] mb-2" style=${{color:'#C5A880'}}>Vitrine de Destaques · Fluxo Contínuo</p>
         <h2 className="serif text-4xl md:text-6xl">Mais apreciadas <i>pelo público</i></h2>
       </div>
-      <div className="flex gap-2">
-        <button className="btn" aria-label="Anterior" onClick=${()=>sc(-330)}><${Ic} d=${P.l} s=${16}/></button>
-        <button className="btn" aria-label="Próxima" onClick=${()=>sc(330)}><${Ic} d=${P.r} s=${16}/></button>
-      </div>
+      <p className="text-xs opacity-70">Passe o cursor sobre uma obra para pausar e apreciar</p>
     </div>
-    <div ref=${ref} className="scroller pb-4" onPointerDown=${e=>{d.current={x:e.clientX,s:ref.current.scrollLeft}}} onPointerMove=${e=>{if(d.current&&e.buttons)ref.current.scrollLeft=d.current.s-(e.clientX-d.current.x)}} onPointerUp=${()=>d.current=null}>
-      ${sorted.map((a,k)=>html`<article key=${a.id} className="shrink-0 p-6 flex flex-col justify-between" style=${{width:310,scrollSnapAlign:'start',background:'linear-gradient(180deg,#251A14 0%,#19110D 100%)',border:'1px solid rgba(197,168,128,.35)',boxShadow:'0 20px 40px rgba(0,0,0,.55)'}}>
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            ${k<3?html`<span className="text-[10px] uppercase tracking-widest px-2.5 py-1" style=${{background:'#6B241B',color:'#F5EFE6',border:'1px solid rgba(197,168,128,.4)'}}>Escolha do Público</span>`:html`<span className="text-xs opacity-60">Acervo Curado</span>`}
-            <span className="text-xs" style=${{color:'#C5A880'}}>${brl(a.price)}</span>
-          </div>
-          <div style=${{height:250}} className="cursor-pointer mb-5" onClick=${()=>onOpen(a.id)}>
-            <${Frame} a=${a} style=${{width:'100%',height:'100%',boxShadow:'0 14px 26px rgba(0,0,0,.7)'}}/>
-          </div>
-          <h3 className="serif italic text-2xl">${a.title}</h3>
-          <p className="text-xs uppercase tracking-wider mt-1 mb-4" style=${{color:'#C5A880'}}>${a.artist}</p>
-        </div>
-        <${Like} a=${a} liked=${likedSet.has(a.id)} onLike=${onLike}/>
-      </article>`)}
+    <div className="marquee-wrap py-2">
+      <div className="marquee-track px-6">
+        ${loopItems.map((a,idx)=>{
+          const rank = idx % sorted.length;
+          return html`<article key=${a.id+'-'+idx} className="shrink-0 p-6 flex flex-col justify-between transition-transform duration-300 hover:-translate-y-1" style=${{width:310,background:'linear-gradient(180deg,#251A14 0%,#19110D 100%)',border:'1px solid rgba(197,168,128,.35)',boxShadow:'0 20px 40px rgba(0,0,0,.55)'}}>
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                ${rank<3?html`<span className="text-[10px] uppercase tracking-widest px-2.5 py-1" style=${{background:'#6B241B',color:'#F5EFE6',border:'1px solid rgba(197,168,128,.4)'}}>Escolha do Público</span>`:html`<span className="text-xs opacity-60">Acervo Curado</span>`}
+                <span className="text-xs" style=${{color:'#C5A880'}}>${brl(a.price)}</span>
+              </div>
+              <div style=${{height:250}} className="cursor-pointer mb-5" onClick=${()=>onOpen(a.id)}>
+                <${Frame} a=${a} style=${{width:'100%',height:'100%',boxShadow:'0 14px 26px rgba(0,0,0,.7)'}}/>
+              </div>
+              <h3 className="serif italic text-2xl">${a.title}</h3>
+              <p className="text-xs uppercase tracking-wider mt-1 mb-4" style=${{color:'#C5A880'}}>${a.artist}</p>
+            </div>
+            <${Like} a=${a} liked=${likedSet.has(a.id)} onLike=${onLike}/>
+          </article>`;
+        })}
+      </div>
     </div>
   </section>`;
 }
@@ -416,20 +434,31 @@ function App() {
       <div className="flex items-center gap-3"><button className="btn hidden md:block" onClick=${()=>setTour(true)}>Iniciar visita guiada</button>
         <button className="relative p-2 hover:text-[#C5A880]" aria-label=${'Sacola, '+cart.length+' obras'} onClick=${()=>setBag(true)}><${Ic} d=${P.bag} s=${24}/><span className="absolute -top-0.5 -right-0.5 text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-semibold" style=${{background:'#6B241B',color:'#F5EFE6',border:'1px solid #C5A880'}}>${cart.length}</span></button></div></div></header>
 
-    <section id="hero" className="relative min-h-screen flex items-center px-6 md:px-16 pt-28 pb-16 overflow-hidden">
-      <svg className="absolute right-[-4%] top-24 hidden md:block opacity-35" width="560" height="700" viewBox="0 0 280 350" fill="none" stroke="#C5A880" aria-hidden="true">
-        <path d="M20 340V150a120 120 0 0 1 240 0v190" strokeWidth="1.2"/>
-        <path d="M50 340V155a90 90 0 0 1 180 0v185" strokeWidth=".8"/>
-        <path d="M80 340V160a60 60 0 0 1 120 0v180" strokeWidth=".5"/>
-        <path d="M140 70l5 14 14 5-14 5-5 14-5-14-14-5 14-5z" fill="#6B241B" stroke="#C5A880" strokeWidth=".6"/>
-      </svg>
-      <div className="relative max-w-3xl">
+    <section id="hero" className="relative min-h-screen grid lg:grid-cols-12 gap-10 items-center px-6 md:px-16 pt-28 pb-16 overflow-hidden">
+      <div className="relative lg:col-span-7">
         <p className="text-xs uppercase tracking-[.25em] mb-4" style=${{color:'#C5A880'}}>Exposição Inaugural · ${GALLERY_CONFIG.city}</p>
-        <h1 className="serif text-5xl md:text-8xl leading-[1.02]">Uma galeria que aproxima <i style=${{color:'#C5A880'}}>artistas</i> e pessoas por meio da arte.</h1>
+        <h1 className="serif text-5xl md:text-7xl xl:text-8xl leading-[1.02]">Uma galeria que aproxima <i style=${{color:'#C5A880'}}>artistas</i> e pessoas por meio da arte.</h1>
         <p className="mt-8 max-w-xl leading-relaxed opacity-85">Em Campinas, a jornalista e curadora ${GALLERY_CONFIG.curator} seleciona obras autorais de artistas da região — cada peça apresentada em sala com sua história, processo criativo e certificado de autenticidade.</p>
         <div className="flex flex-wrap gap-4 mt-10">
           <button className="btn b-w" onClick=${()=>setTour(true)}>Iniciar exposição guiada</button>
           <a href="#parede" className="btn b-o">Explorar acervo na parede</a>
+        </div>
+      </div>
+
+      <!-- Quadro Monumental de Exposição ao lado do Hero -->
+      <div className="lg:col-span-5 flex flex-col items-center justify-center spotlight">
+        <div className="frame f-wood w-full max-w-[390px] aspect-[4/5]" style=${{cursor:'pointer'}} onClick=${()=>setTour(true)}
+          onMouseMove=${e=>{const r=e.currentTarget.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;e.currentTarget.style.transform=`perspective(1000px) rotateY(${x*12}deg) rotateX(${-y*12}deg) translateZ(14px)`}}
+          onMouseLeave=${e=>e.currentTarget.style.transform=''}>
+          <div style=${{width:'100%',height:'100%',overflow:'hidden',background:'#120D0A',position:'relative'}}>
+            <img src=${GALLERY_CONFIG.heroImage} alt="Entrada da Exposição Artheiros" onError=${e=>{e.currentTarget.onerror=null;e.currentTarget.src=fallbackArt("Exposição Artheiros")}}/>
+            <div style=${{position:'absolute',inset:0,background:'linear-gradient(180deg, transparent 58%, rgba(18,12,9,.85) 100%)',display:'flex',alignItems:'flex-end',padding:'1.25rem'}}>
+              <span className="text-[11px] uppercase tracking-[.18em]" style=${{color:'#C5A880'}}>Clique para iniciar a visita guiada →</span>
+            </div>
+          </div>
+        </div>
+        <div className="plaque mt-5 px-5 py-2.5 text-center text-xs">
+          <span className="serif italic text-base" style=${{color:'#F5EFE6'}}>${GALLERY_CONFIG.heroCaption}</span>
         </div>
       </div>
     </section>
